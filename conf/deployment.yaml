@@ -1,0 +1,6 @@
+environments:
+  default:
+    jobs:
+      - name: "dbx-demo-job"
+        spark_python_task:
+          python_file: "main.py"

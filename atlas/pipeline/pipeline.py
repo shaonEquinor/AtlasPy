@@ -6,6 +6,9 @@ def process_ingest(ingest_path, raw_path, primary_keys, data_format='csv', proce
 
 	spark = SparkSession.builder.getOrCreate()
 	spark.sql("SET spark.databricks.delta.formatCheck.enabled = false")
+	spark.sql("SET spark.databricks.delta.properties.defaults.minWriterVersion = 5")
+	spark.sql("SET spark.databricks.delta.properties.defaults.minReaderVersion = 2")
+	spark.sql("SET spark.databricks.delta.properties.defaults.columnMapping.mode = name")
 
 	df = spark.readStream.format('cloudFiles') \
 		.option("cloudFiles.schemaLocation", os.path.join(raw_path, '_meta/schema')) \

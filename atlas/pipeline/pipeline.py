@@ -15,10 +15,22 @@ def process_ingest(ingest_path, raw_path, primary_keys, data_format='csv', proce
 
 	df = df.dropDuplicates(primary_keys)
 
+	def normalize_colname(colname):
+		illegal_chars = '<>*#,.%&;:\\+?/'
+		name = ''.join(char for char in colname if char not in illegal_chars)
+		name = name.replace(" ", "_").replace("-", "_")
+		return name
+
 	df = df.withColumn('etl_createat', to_timestamp(current_timestamp()))
 
 	if process_func is not None:
 		df = process_func(df)
+
+	for colname in df.columns:
+		normalized_colname = normalize_colname(colname)
+		if normalized_colname != colname:
+			df = df.withColumnRenamed(colname, normalized_colname)
+			print(f"Renamed column {colname} to {normalized_colname}")
 
 	if not DeltaTable.isDeltaTable(spark, raw_path):
 		emptyRDD = spark.sparkContext.emptyRDD()

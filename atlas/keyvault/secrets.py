@@ -5,15 +5,25 @@ def getSecret(secretName, kvName=None):
 		secretName: SecretName in KeyVault
 		eks : KeyVaultConnection().getSecret("secretname")
 	'''
+
+	from pyspark.sql.session import SparkSession
 	from azure.keyvault.secrets import SecretClient
 	from azure.identity import DefaultAzureCredential
-	if kvName is None:
-		self.keyVaultName = dbutils.secrets.get(scope='env-secrets-scope', key="saas-kv-name")
-	else:
-		self.keyVaultName = kvName
-	self.KVUri = f"https://{self.keyVaultName}.vault.azure.net"
+	from pyspark.dbutils import DBUtils
+	import os
+
+	spark = SparkSession.builder.getOrCreate()
+	dbutils = DBUtils(spark)
+
+	os.environ["AZURE_CLIENT_ID"] = dbutils.secrets.get("cmn-databricks-sp-scope", "clientid")
+	os.environ["AZURE_TENANT_ID"] = dbutils.secrets.get("cmn-databricks-sp-scope", "tenantid")
+	os.environ["AZURE_CLIENT_SECRET"] = dbutils.secrets.get("cmn-databricks-sp-scope", "secret")
+
+	keyVaultName = dbutils.secrets.get(scope='env-secrets-scope', key="saas-kv-name")
+	KVUri = f"https://{keyVaultName}.vault.azure.net"
+
 	# Create a SecretClient using default Azure credentials
-	self.credential = DefaultAzureCredential()
-	self.client = SecretClient(vault_url=self.KVUri, credential=self.credential)
-	secret = self.client.get_secret(secretName)
+	credential = DefaultAzureCredential()
+	client = SecretClient(vault_url=KVUri, credential=credential)
+	secret = client.get_secret(secretName)
 	return secret.value

@@ -1,1 +1,1 @@
-from .secrets import getSecret, getCommonKeyVaultName
+from .secrets import getSecret

@@ -17,7 +17,7 @@ def process_ingest(ingest_path, raw_path, primary_keys, data_format='csv', proce
 
 	def normalize_colname(colname):
 		illegal_chars = '<>*#,.%&;:\\+?/'
-		name = ''.join(char for char in colname if char not in illegal_chars)
+		name = ''.join(char for char in colname if char not in illegal_chars).strip()
 		name = name.replace(" ", "_").replace("-", "_")
 		return name
 

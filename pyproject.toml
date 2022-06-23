@@ -8,6 +8,7 @@ readme = "README.rst"
 
 [tool.poetry.dependencies]
 python = "^3.8"
+paramiko = "^2.11.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"

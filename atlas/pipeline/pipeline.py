@@ -1,4 +1,4 @@
-def process_ingest(ingest_path, raw_path, primary_keys, data_format='csv', process_func=None):
+def process_ingest(ingest_path, raw_path, primary_keys, data_format='csv', process_func=None, delimiter=","):
     import os
     from pyspark.sql.session import SparkSession
     from pyspark.sql.functions import to_timestamp, current_timestamp
@@ -11,6 +11,7 @@ def process_ingest(ingest_path, raw_path, primary_keys, data_format='csv', proce
         .option("cloudFiles.schemaLocation", os.path.join(raw_path, '_meta/schema')) \
         .option("cloudFiles.inferColumnTypes", True) \
         .option('cloudFiles.format', data_format) \
+        .option("delimiter", delimiter) \
         .load(ingest_path, header=True)
 
     df = df.dropDuplicates(primary_keys)

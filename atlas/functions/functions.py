@@ -84,6 +84,6 @@ def timestamper_context(timestamp_file: str, default='0'):
     finally:
         if timestamper.get_status() and load_done:
             overwrite_file(timestamp_file, str(timestamper.this_load))
-            print(f"Updated timestamp file,\tOld: {timestamper.last_load}\tNew: {timestamper.this_load}")
+            print(f"Updated {os.path.basename(timestamp_file)}, \tOld: {timestamper.last_load}\tNew: {timestamper.this_load}")
         else:
-            print(f"Timestamp file not updated")
+            print(f"{os.path.basename(timestamp_file)} file not updated")

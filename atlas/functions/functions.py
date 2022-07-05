@@ -41,7 +41,7 @@ def sftp_context(host: str, username: str, password: str, port: int = 22) -> par
 
 
 class Timestamper:
-    __load_status = True
+    __load_status = False
 
     def __init__(self, last_loaded, this_loaded):
         self.last_load = last_loaded
@@ -50,40 +50,31 @@ class Timestamper:
     def get_status(self):
         return self.__load_status
 
-    def block_updating_timestamp(self):
-        self.__load_status = False
-
-
-def overwrite_file(file, content):
-    timestamp_dir = os.path.dirname(os.path.realpath(file))
-    if path.isdir(timestamp_dir) is False:
-        os.makedirs(timestamp_dir)
-    with open(file, 'w') as file_writer:
-        file_writer.write(content)
+    def update(self):
+        self.__load_status = True
 
 
 @contextmanager
 def timestamper_context(timestamp_file: str, default='0'):
     last_load = default
     this_load = int(time.time())
-    load_done = False
+
+    timestamp_dir = os.path.dirname(os.path.realpath(timestamp_file))
 
     if path.isfile(timestamp_file):
         with open(timestamp_file, "r") as file:
             last_load = file.readline()
+    elif path.isdir(timestamp_dir) is False:
+        os.makedirs(timestamp_dir)
 
     timestamper = Timestamper(last_load, this_load)
 
     try:
         yield timestamper
-    except Exception as e:
-        load_done = False
-        raise e
-    else:
-        load_done = True
     finally:
-        if timestamper.get_status() and load_done:
-            overwrite_file(timestamp_file, str(timestamper.this_load))
-            print(f"Updated timestamp file,\tOld: {timestamper.last_load}\tNew: {timestamper.this_load}")
+        if timestamper.get_status():
+            with open(timestamp_file, 'w') as file_writer:
+                file_writer.write(str(timestamper.this_load))
+                print(f"Updated timestamp file,\tOld: {timestamper.last_load}\tNew: {timestamper.this_load}")
         else:
-            print(f"Timestamp file not updated")
+            print(f"update() not called. {timestamp_file} file not updated")

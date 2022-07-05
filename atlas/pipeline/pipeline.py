@@ -1,4 +1,4 @@
-def process_ingest(ingest_path, raw_path, primary_keys, data_format='csv', process_func=None, delimiter=","):
+def process_ingest(ingest_path, raw_path, primary_keys=None, data_format='csv', process_func=None, delimiter=","):
     import os
     from pyspark.sql.session import SparkSession
     from pyspark.sql.functions import to_timestamp, current_timestamp
@@ -14,6 +14,11 @@ def process_ingest(ingest_path, raw_path, primary_keys, data_format='csv', proce
         .option("delimiter", delimiter) \
         .load(ingest_path, header=True)
 
+    if primary_keys is None:
+        primary_keys = list(filter(lambda x: x.startswith('_') is False, df.columns))
+        print("Primary keys not specified. using")
+        print(primary_keys)
+        print("columns to deduplicate")
     df = df.dropDuplicates(primary_keys)
 
     def normalize_colname(colname):

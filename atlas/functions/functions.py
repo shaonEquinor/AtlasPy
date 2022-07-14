@@ -6,6 +6,13 @@ from os import path
 import time
 
 
+def log(message, verbose):
+    if verbose == 0:
+        return
+    else:
+        print(message)
+
+
 def date_range(start_date: datetime, end_date: datetime, step: timedelta):
     """
       Takes start, end date and step size as input and returns a pair of dates from start date to end date each with
@@ -55,7 +62,7 @@ class Timestamper:
 
 
 @contextmanager
-def timestamper_context(timestamp_file: str, default='0'):
+def timestamper_context(timestamp_file: str, default='0', verbose=0):
     last_load = default
     this_load = int(time.time())
 
@@ -75,6 +82,6 @@ def timestamper_context(timestamp_file: str, default='0'):
         if timestamper.get_status():
             with open(timestamp_file, 'w') as file_writer:
                 file_writer.write(str(timestamper.this_load))
-                print(f"Updated timestamp file,\tOld: {timestamper.last_load}\tNew: {timestamper.this_load}")
+                log(f"Updated timestamp file,\tOld: {timestamper.last_load}\tNew: {timestamper.this_load}", verbose=verbose)
         else:
-            print(f"update() not called. {timestamp_file} file not updated")
+            log(f"update() not called. {timestamp_file} file not updated,", verbose=verbose)

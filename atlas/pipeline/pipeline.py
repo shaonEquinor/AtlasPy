@@ -1,4 +1,4 @@
-def process_ingest(ingest_path, raw_path, primary_keys=None, data_format='csv', process_func=None, delimiter=","):
+def process_ingest(ingest_path, raw_path, primary_keys=None, data_format='csv', process_func=None, batch_func=None, delimiter=","):
     import os
     from pyspark.sql.session import SparkSession
     from pyspark.sql.functions import to_timestamp, current_timestamp
@@ -45,17 +45,20 @@ def process_ingest(ingest_path, raw_path, primary_keys=None, data_format='csv', 
 
     match_cond = " and ".join([f"data.{keystring} = newData.{keystring}" for keystring in primary_keys])
 
-    def batch_func(batchDf, _):
+    def basic_batch_func(batchDf, epochID):
         deltaTable = DeltaTable.forPath(spark, raw_path)
-        (deltaTable.alias("data")
-         .merge(batchDf.alias("newData"), match_cond)
-         .whenNotMatchedInsertAll()
-         .execute())
+        if batch_func is None:
+            (deltaTable.alias("data")
+             .merge(batchDf.alias("newData"), match_cond)
+             .whenNotMatchedInsertAll()
+             .execute())
+        else:
+            batch_func(batchDf, deltaTable, epochID)
 
     streamHandler = (df.writeStream
                      .format("delta")
                      .outputMode("append")
-                     .foreachBatch(batch_func)
+                     .foreachBatch(basic_batch_func)
                      .option("checkpointLocation", os.path.join(raw_path, '_meta/checkpoint'))
                      .option("cloudFiles.schemaEvolutionMode", "rescue")
                      .option("cloudFiles.schemaLocation", os.path.join(raw_path, '_meta/schema'))

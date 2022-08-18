@@ -28,6 +28,7 @@ def process_ingest(ingest_path, raw_path, primary_keys=None, data_format='csv', 
         return name
 
     df = df.withColumn('etl_createat', to_timestamp(current_timestamp()))
+    df = df.withColumn('etl_filesource', input_file_name())
 
     if process_func is not None:
         df = process_func(df)

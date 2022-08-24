@@ -1,7 +1,7 @@
 def process_ingest(ingest_path, raw_path, primary_keys=None, data_format='csv', process_func=None, batch_func=None, delimiter=","):
     import os
     from pyspark.sql.session import SparkSession
-    from pyspark.sql.functions import to_timestamp, current_timestamp, input_file_name
+    from pyspark.sql.functions import to_timestamp, current_timestamp
     from delta import DeltaTable
 
     spark = SparkSession.builder.getOrCreate()
@@ -28,7 +28,6 @@ def process_ingest(ingest_path, raw_path, primary_keys=None, data_format='csv', 
         return name
 
     df = df.withColumn('etl_createat', to_timestamp(current_timestamp()))
-    df = df.withColumn('etl_filesource', input_file_name())
 
     if process_func is not None:
         df = process_func(df)
